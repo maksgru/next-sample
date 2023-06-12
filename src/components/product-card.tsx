@@ -1,15 +1,36 @@
-import { IProduct } from '@/interfaces/product-interface';
+import { useEffect } from 'react';
 import {
   Card, CardActions, CardContent, CardMedia, Rating, Typography,
 } from '@mui/material';
 import Link from 'next/link';
+import { useInView } from 'react-intersection-observer';
+import { IProduct } from '@/interfaces/product-interface';
 import StarIcon from '../../public/star.svg';
 import StarEmptyIcon from '../../public/star-empty.svg';
 
 export default function ProductCardI(props: { product: IProduct }) {
   const { product } = props;
+  const { ref, inView, entry } = useInView({
+    threshold: 0,
+  });
+  useEffect(() => () => {
+    if (inView && entry?.target) {
+      sessionStorage.setItem('ref-id', product.id);
+    }
+  }, [entry?.target, inView, product.id]);
+
+  useEffect(() => {
+    if (document.readyState === 'complete') {
+      const refId = sessionStorage.getItem('ref-id');
+      const count = sessionStorage.getItem('products-count');
+      if (refId === entry?.target.id && count) {
+        entry.target.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [entry?.target]);
+
   return (
-    <Link href={`/products/${product.id}`} style={{ textDecoration: 'unset' }}>
+    <Link href={`/products/${product.id}`} style={{ textDecoration: 'unset' }} ref={ref} id={product.id}>
       <Card
         elevation={0}
         sx={{
